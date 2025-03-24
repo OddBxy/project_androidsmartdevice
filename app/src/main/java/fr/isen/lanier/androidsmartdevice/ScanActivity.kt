@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.le.BluetoothLeScanner
+import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -59,6 +60,7 @@ class ScanActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val context = LocalContext.current
+            val deviceList = remember { ServiceBLE.scanResults }
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             val bluetoothLEAvailable = packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
 
@@ -69,7 +71,7 @@ class ScanActivity : ComponentActivity() {
                     if(bluetoothLEAvailable){
                         if(bluetoothAdapter.isEnabled && isLocationEnabled(context)){
                             Row(Modifier.padding(innerPadding)) {
-                                scannedDevices(bluetoothAdapter.bluetoothLeScanner, context)
+                                scannedDevices(deviceList, context)
                             }
                         }
                         else{
@@ -123,11 +125,10 @@ class ScanActivity : ComponentActivity() {
 
 @SuppressLint("MissingPermission")
 @Composable
-fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
+fun scannedDevices(devices : MutableList<ScanResult>,context: Context){
 
     var loading by remember { mutableStateOf(false) }
     var intent = Intent(context, DeviceActivity::class.java)
-    val scanResults = remember { ServiceBLE.scanResults }
 
     Column(
         Modifier.padding(horizontal = 20.dp)
@@ -169,7 +170,7 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
         Spacer(Modifier.height(20.dp))
 
         LazyColumn {
-            items(scanResults){
+            items(devices){
                 Column(
                     Modifier.fillMaxWidth().clickable {
                         intent.putExtra("device", it)
@@ -184,6 +185,4 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
             }
         }
     }
-
-
 }
