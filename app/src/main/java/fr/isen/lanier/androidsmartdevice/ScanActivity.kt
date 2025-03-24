@@ -8,6 +8,7 @@ import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
@@ -21,6 +22,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -149,6 +151,7 @@ class ScanActivity : ComponentActivity() {
 fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
 
     var loading by remember { mutableStateOf(false) }
+    var intent = Intent(context, DeviceActivity::class.java)
 
     Column(
         Modifier.padding(horizontal = 20.dp)
@@ -191,10 +194,17 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
 
         LazyColumn {
             items(scanResults){
-                ShowDevice(it)
-                Spacer(
-                    modifier = Modifier.height(10.dp)
-                )
+                Column(
+                    Modifier.fillMaxWidth().clickable {
+                        intent.putExtra("device", it)
+                        context.startActivity(intent)
+                    }
+                ) {
+                    ShowDevice(it)
+                    Spacer(
+                        modifier = Modifier.height(10.dp)
+                    )
+                }
             }
         }
     }

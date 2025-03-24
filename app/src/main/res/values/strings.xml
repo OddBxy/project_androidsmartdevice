@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">androidsmartdevice</string>
     <string name="title_activity_scan">ScanActivity</string>
+    <string name="title_activity_device">DeviceActivity</string>
 </resources>
