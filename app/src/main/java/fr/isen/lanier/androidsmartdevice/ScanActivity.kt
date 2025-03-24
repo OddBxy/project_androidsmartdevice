@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -154,8 +155,13 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
     ) {
         TextButton (
             onClick =  {
-                loading = true
-                bluetoothLeScanner.startScan(scanCallback)
+                loading = !loading
+                if(loading){
+                    bluetoothLeScanner.startScan(scanCallback)
+                }
+                else{
+                    bluetoothLeScanner.stopScan(scanCallback)
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -181,6 +187,8 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
         }
 
 
+        Spacer(Modifier.height(20.dp))
+
         LazyColumn {
             items(scanResults){
                 ShowDevice(it)
@@ -196,7 +204,6 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
 
 
 val scanResults = mutableStateListOf<ScanResult>()
-
 val scanCallback = object : ScanCallback() {
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -217,6 +224,7 @@ val scanCallback = object : ScanCallback() {
         Log.i("SCANPB", "problem encoutered while scanning ")
     }
 }
+
 
 
 

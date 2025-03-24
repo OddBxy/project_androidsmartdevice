@@ -1,6 +1,7 @@
 package fr.isen.lanier.androidsmartdevice.view.component
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanResult
 import androidx.annotation.RequiresPermission
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.sp
 
 
 
+@SuppressLint("NewApi")
 @Composable
 @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
 fun ShowDevice(device: ScanResult){
@@ -38,7 +40,7 @@ fun ShowDevice(device: ScanResult){
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "80",
+            text = "${device.txPower}",
             color = Color.White,
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
