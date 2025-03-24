@@ -3,21 +3,14 @@ package fr.isen.lanier.androidsmartdevice
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.BluetoothLeScanner
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
-import android.widget.Space
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,28 +44,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
+import fr.isen.lanier.androidsmartdevice.services.ServiceBLE
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.component.ShowDevice
 
 class ScanActivity : ComponentActivity() {
-
-    val ALL_BLE_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        arrayOf(
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.BLUETOOTH_SCAN
-        )
-    }
-    else {
-        arrayOf(
-            Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.BLUETOOTH,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    }
-
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -123,7 +99,6 @@ class ScanActivity : ComponentActivity() {
     }
 
 
-
     private fun GrantPermissions() {
         val launcher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -135,7 +110,7 @@ class ScanActivity : ComponentActivity() {
             }
         }
 
-        launcher.launch(ALL_BLE_PERMISSIONS)
+        launcher.launch(ServiceBLE.ALL_BLE_PERMISSIONS)
     }
 
     private fun isLocationEnabled(context: Context): Boolean {
@@ -152,6 +127,7 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
 
     var loading by remember { mutableStateOf(false) }
     var intent = Intent(context, DeviceActivity::class.java)
+    val scanResults = remember { ServiceBLE.scanResults }
 
     Column(
         Modifier.padding(horizontal = 20.dp)
@@ -160,10 +136,10 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
             onClick =  {
                 loading = !loading
                 if(loading){
-                    bluetoothLeScanner.startScan(scanCallback)
+                    ServiceBLE.startScan()
                 }
                 else{
-                    bluetoothLeScanner.stopScan(scanCallback)
+                    ServiceBLE.stopScan()
                 }
             },
             modifier = Modifier
@@ -211,30 +187,3 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
 
 
 }
-
-
-val scanResults = mutableStateListOf<ScanResult>()
-val scanCallback = object : ScanCallback() {
-
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    override fun onScanResult(callbackType: Int, result: ScanResult?) {
-
-        if(result != null && result.device.name != null){
-            with(result.device){
-                val indexQuery = scanResults.indexOfFirst { it.device.address == address }
-                if(indexQuery == -1){   //device not found in the list so we can add it
-                    Log.i("SCAN", "device found: $name, address : $address")
-                    scanResults.add(result)
-                }
-            }
-        }
-    }
-    override fun onScanFailed(errorCode: Int) {
-        super.onScanFailed(errorCode)
-        Log.i("SCANPB", "problem encoutered while scanning ")
-    }
-}
-
-
-
-
