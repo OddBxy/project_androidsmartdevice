@@ -3,9 +3,15 @@ package fr.isen.lanier.androidsmartdevice.services
 import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattService
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.content.Context
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
@@ -17,6 +23,7 @@ import fr.isen.lanier.androidsmartdevice.ScanActivity
 object ServiceBLE {
 
     var scanResults = mutableStateListOf<ScanResult>()
+    var services = mutableStateListOf<BluetoothGattService>()
     private val scanCallback = object : ScanCallback() {
 
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -26,7 +33,7 @@ object ServiceBLE {
                 with(result.device){
                     val indexQuery = scanResults.indexOfFirst { it.device.address == address }
                     if(indexQuery == -1){   //device not found in the list so we can add it
-                        Log.i("SCAN", "device found: $name, address : $address")
+                        Log.i("SCANBLE_OK", "device found: $name, address : $address")
                         scanResults.add(result)
                     }
                 }
@@ -34,9 +41,41 @@ object ServiceBLE {
         }
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
-            Log.i("SCANPB", "problem encoutered while scanning ")
+            Log.i("SCANBLE_PB", "problem encoutered while scanning ")
         }
     }
+
+
+    private val connectCallback = object : BluetoothGattCallback(){
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            super.onConnectionStateChange(gatt, status, newState)
+
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                Log.i("CONNECTBLE_PB", "enable to connect to device")
+                return
+            }
+
+            if (newState == BluetoothGatt.STATE_CONNECTED) {
+                Log.i("CONNECTBLE_OK", "onConnectionStateChange: ")
+                Handler(Looper.getMainLooper()).post {
+                    gatt?.discoverServices()
+                }
+            }
+        }
+
+
+        override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+            super.onServicesDiscovered(gatt, status)
+            Log.i("SERVICES", "${gatt?.services}")
+            services.clear()
+            gatt?.services?.let {
+                services.addAll(it)
+            }
+        }
+
+    }
+
 
 
     val ALL_BLE_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -68,6 +107,10 @@ object ServiceBLE {
         bluetoothScanner.stopScan(scanCallback)
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    public fun connect(device : ScanResult, context: Context){
+        device.device.connectGatt(context, false, connectCallback)
+    }
 
 
 }
