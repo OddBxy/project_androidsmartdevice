@@ -1,7 +1,6 @@
 package fr.isen.lanier.androidsmartdevice.services
 
 import android.Manifest
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
@@ -13,17 +12,15 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import fr.isen.lanier.androidsmartdevice.ScanActivity
+import androidx.compose.runtime.mutableStateOf
 
 object ServiceBLE {
 
     var scanResults = mutableStateListOf<ScanResult>()
     var services = mutableStateListOf<BluetoothGattService>()
+    var isConnected = mutableStateOf<Boolean?>(null)
     private val scanCallback = object : ScanCallback() {
 
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -52,11 +49,13 @@ object ServiceBLE {
             super.onConnectionStateChange(gatt, status, newState)
 
             if (status != BluetoothGatt.GATT_SUCCESS) {
+                isConnected.value = false
                 Log.i("CONNECTBLE_PB", "enable to connect to device")
                 return
             }
 
             if (newState == BluetoothGatt.STATE_CONNECTED) {
+                isConnected.value = true
                 Log.i("CONNECTBLE_OK", "onConnectionStateChange: ")
                 Handler(Looper.getMainLooper()).post {
                     gatt?.discoverServices()
@@ -109,6 +108,7 @@ object ServiceBLE {
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public fun connect(device : ScanResult, context: Context){
+        isConnected.value = null
         device.device.connectGatt(context, false, connectCallback)
     }
 
