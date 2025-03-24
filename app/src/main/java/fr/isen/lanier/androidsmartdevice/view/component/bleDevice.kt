@@ -1,5 +1,9 @@
 package fr.isen.lanier.androidsmartdevice.view.component
 
+import android.Manifest
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.ScanResult
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,9 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
-@Preview
+
 @Composable
-fun ShowDevice(){
+@RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+fun ShowDevice(device: ScanResult){
     Row(
         Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -45,8 +50,8 @@ fun ShowDevice(){
         )
 
         Column {
-            Text("Device's title")
-            Text("Device's address", fontSize = 10.sp)
+            Text(device.device.name)
+            Text(device.device.address, fontSize = 10.sp)
         }
     }
 }

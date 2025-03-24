@@ -1,6 +1,7 @@
 package fr.isen.lanier.androidsmartdevice
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.BluetoothLeScanner
@@ -28,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
@@ -38,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -96,7 +99,7 @@ class ScanActivity : ComponentActivity() {
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Please enable bluetooth and localisation")
+                                Text("Please enable bluetooth and location")
                             }
                         }
                     }
@@ -123,9 +126,9 @@ class ScanActivity : ComponentActivity() {
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
             if (permissions.values.all { it }) {
-                Log.i("WHOUHOUH", "pesgsiuni")
+                Log.i("PERM OK", "permissions granted")
             } else {
-                Log.i("MERDE", "GrantPermissions: ")
+                Log.i("PERM !OK", "permission not granted ")
             }
         }
 
@@ -140,8 +143,8 @@ class ScanActivity : ComponentActivity() {
 }
 
 
+@SuppressLint("MissingPermission")
 @Composable
-@RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
 fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
 
     var loading by remember { mutableStateOf(false) }
@@ -177,9 +180,10 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
             )
         }
 
+
         LazyColumn {
-            items(5){
-                ShowDevice()
+            items(scanResults){
+                ShowDevice(it)
                 Spacer(
                     modifier = Modifier.height(10.dp)
                 )
@@ -191,14 +195,22 @@ fun scannedDevices(bluetoothLeScanner : BluetoothLeScanner, context: Context){
 }
 
 
-
+val scanResults = mutableStateListOf<ScanResult>()
 
 val scanCallback = object : ScanCallback() {
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onScanResult(callbackType: Int, result: ScanResult?) {
-        super.onScanResult(callbackType, result)
-        Log.i("SCAN", "device found: ${result?.device?.name}, address : ${result?.device?.address}")
+
+        if(result != null && result.device.name != null){
+            with(result.device){
+                val indexQuery = scanResults.indexOfFirst { it.device.address == address }
+                if(indexQuery == -1){   //device not found in the list so we can add it
+                    Log.i("SCAN", "device found: $name, address : $address")
+                    scanResults.add(result)
+                }
+            }
+        }
     }
     override fun onScanFailed(errorCode: Int) {
         super.onScanFailed(errorCode)
