@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,12 +26,14 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +53,7 @@ import fr.isen.lanier.androidsmartdevice.services.ServiceBLE
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.component.ShowDevice
 import fr.isen.lanier.androidsmartdevice.view.component.headerBar
+import kotlinx.coroutines.selects.select
 
 class DeviceActivity() : ComponentActivity() {
     @SuppressLint("MissingPermission")
@@ -108,7 +112,8 @@ class DeviceActivity() : ComponentActivity() {
 @Composable
 fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattService>,modifier: Modifier){
     var checked by remember { mutableStateOf(false) }
-    var ledStates = remember { mutableStateListOf(false, false, false) }
+    var selectedOption by remember { mutableStateOf(0) }
+    var leds = listOf(0x01, 0x02, 0x03)
     Column(
         modifier = modifier.padding(30.dp)
     ) {
@@ -123,21 +128,22 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
         Spacer(Modifier.height(50.dp))
 
         Text("Affichage des differentes led")
-        LazyRow(
+        Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            items(3){
-
-                IconButton(
+            leds.forEach{ value ->
+                Card(
                     onClick = {
-                        ledStates[it] = !ledStates[it]
-                        ServiceBLE.writeCharacteristic(device, servicesList.get(2).characteristics.get(0), byteArrayOf((it+1).toByte()))
-                        Log.i("LEDSTATE", "displayAction: ${ledStates[it]} $it")
-                    }
+                        selectedOption = value
+                        ServiceBLE.writeCharacteristic(device, servicesList.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
+                        Log.i("LEDSTATE", "displayAction: $value")
+                    },
+
+
                 ) {
-                    if(!ledStates[it]){
+                    if(selectedOption != value){
                         Icon(Icons.Outlined.CheckCircle, "LedIconOFF")
                     }
                     else{
