@@ -20,7 +20,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import java.util.UUID
 
-object ServiceBLE {
+class ServiceBLE {
 
     var scanResults = mutableStateListOf<ScanResult>()
     var services = mutableStateListOf<BluetoothGattService>()

@@ -3,7 +3,6 @@ package fr.isen.lanier.androidsmartdevice
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.content.Intent
@@ -46,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.location.LocationManagerCompat
+import fr.isen.lanier.androidsmartdevice.services.InstanceBLE
 import fr.isen.lanier.androidsmartdevice.services.ServiceBLE
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.component.ShowDevice
@@ -60,7 +60,7 @@ class ScanActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val context = LocalContext.current
-            val deviceList = remember { ServiceBLE.scanResults }
+            val deviceList = remember { InstanceBLE.instance.scanResults }
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             val bluetoothLEAvailable = packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
 
@@ -112,7 +112,7 @@ class ScanActivity : ComponentActivity() {
             }
         }
 
-        launcher.launch(ServiceBLE.ALL_BLE_PERMISSIONS)
+        launcher.launch(InstanceBLE.instance.ALL_BLE_PERMISSIONS)
     }
 
     private fun isLocationEnabled(context: Context): Boolean {
@@ -137,10 +137,10 @@ fun scannedDevices(devices : MutableList<ScanResult>,context: Context){
             onClick =  {
                 loading = !loading
                 if(loading){
-                    ServiceBLE.startScan()
+                    InstanceBLE.instance.startScan()
                 }
                 else{
-                    ServiceBLE.stopScan()
+                    InstanceBLE.instance.stopScan()
                 }
             },
             modifier = Modifier

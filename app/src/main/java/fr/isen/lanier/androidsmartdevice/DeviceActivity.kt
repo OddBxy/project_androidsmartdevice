@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.isen.lanier.androidsmartdevice.services.InstanceBLE
 import fr.isen.lanier.androidsmartdevice.services.ServiceBLE
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.component.ShowDevice
@@ -64,9 +65,9 @@ class DeviceActivity() : ComponentActivity() {
         val device = intent.getParcelableExtra<ScanResult>("device")
         enableEdgeToEdge()
         setContent {
-            val servicesList = remember { ServiceBLE.services }
-            val isConnected by ServiceBLE.isConnected
-            ServiceBLE.connect(device!!, LocalContext.current)
+            val servicesList = remember { InstanceBLE.instance.services }
+            val isConnected by InstanceBLE.instance.isConnected
+            InstanceBLE.instance.connect(device!!, LocalContext.current)
             AndroidsmartdeviceTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -109,6 +110,9 @@ class DeviceActivity() : ComponentActivity() {
 }
 
 
+
+
+
 @OptIn(ExperimentalStdlibApi::class)
 @SuppressLint("MissingPermission")
 @Composable
@@ -116,12 +120,10 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
     var checked by remember { mutableStateOf(false) }
     val characteristicData by remember {
         derivedStateOf {
-            ServiceBLE.characteristicValues[servicesList.get(2).characteristics.get(1).uuid]
+            InstanceBLE.instance.characteristicValues[servicesList.get(2).characteristics.get(1).uuid]
         }
     }
 
-    var selectedOption by remember { mutableStateOf(0) }
-    var leds = listOf(0x01, 0x02, 0x03)
     Column(
         modifier = modifier.padding(30.dp)
     ) {
@@ -135,31 +137,7 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
 
         Spacer(Modifier.height(50.dp))
 
-        Text("Affichage des differentes led")
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            leds.forEach{ value ->
-                Card(
-                    onClick = {
-                        selectedOption = value
-                        ServiceBLE.writeCharacteristic(servicesList.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
-                        Log.i("LEDSTATE", "displayAction: $value")
-                    },
-
-
-                ) {
-                    if(selectedOption != value){
-                        Icon(Icons.Outlined.CheckCircle, "LedIconOFF")
-                    }
-                    else{
-                        Icon(Icons.Filled.CheckCircle, "LedIconOn")
-                    }
-                }
-            }
-        }
+        radioButtons()
 
         Spacer(Modifier.height(30.dp))
 
@@ -170,7 +148,7 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
                 onCheckedChange = {
                     checked = it
                     if(!servicesList.isEmpty()) {
-                        ServiceBLE.enableNotify(servicesList.get(2).characteristics.get(1))
+                        InstanceBLE.instance.enableNotify(servicesList.get(2).characteristics.get(1))
                     }
                 }
             )
@@ -190,3 +168,39 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
 
 }
 
+
+
+@SuppressLint("MissingPermission")
+@Composable
+fun radioButtons(){
+
+    var selectedOption by remember { mutableStateOf(0) }
+    var leds = listOf(0x01, 0x02, 0x03)
+
+    Text("Affichage des differentes led")
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        leds.forEach{ value ->
+            Card(
+                onClick = {
+                    selectedOption = value
+                    InstanceBLE.instance.writeCharacteristic(InstanceBLE.instance.services.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
+                    Log.i("LEDSTATE", "displayAction: $value")
+                },
+
+
+                ) {
+                if(selectedOption != value){
+                    Icon(Icons.Outlined.CheckCircle, "LedIconOFF")
+                }
+                else{
+                    Icon(Icons.Filled.CheckCircle, "LedIconOn")
+                }
+            }
+        }
+    }
+
+}
