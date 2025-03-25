@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
@@ -47,6 +48,7 @@ object ServiceBLE {
     }
 
 
+    @OptIn(ExperimentalStdlibApi::class)
     private val connectCallback = object : BluetoothGattCallback(){
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
@@ -84,6 +86,30 @@ object ServiceBLE {
         ) {
             super.onCharacteristicWrite(gatt, characteristic, status)
             Log.i("WRITE", "Write status: $status")
+        }
+
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic
+        ) {
+            super.onCharacteristicChanged(gatt, characteristic)
+            setNewCharacteristicValue(characteristic, characteristic.value)
+            Log.i("NOTIFY CHANGE", "New value: ${characteristic.value.toHexString()}")
+        }
+
+
+        override fun onDescriptorWrite(
+            gatt: BluetoothGatt?,
+            descriptor: BluetoothGattDescriptor?,
+            status: Int
+        ) {
+            super.onDescriptorWrite(gatt, descriptor, status)
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.i("NOTIFIED_OK", "Descriptor ${descriptor?.uuid} value : ${descriptor?.value}")
+            }
+            else {
+                Log.i("NOTIFIED_PB", "Descriptor ${descriptor?.uuid} : write fail (status=$status)")
+            }
         }
 
     }
@@ -126,7 +152,7 @@ object ServiceBLE {
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    public fun writeCharacteristic(device : ScanResult, characteristic: BluetoothGattCharacteristic, newValue : ByteArray){
+    public fun writeCharacteristic(characteristic: BluetoothGattCharacteristic?, newValue : ByteArray){
         if(characteristic != null){
             Log.i("WRITE UUID", "UUID : ${characteristic.uuid}, VALUE : $newValue")
             characteristic.setValue(newValue)
@@ -134,5 +160,37 @@ object ServiceBLE {
         }
     }
 
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    public fun enableNotify(characteristic: BluetoothGattCharacteristic?){
+        if( (characteristic != null) && (characteristic.isNotifiable()) ){
+            bluetoothGatt?.setCharacteristicNotification(characteristic, true)
+
+            characteristic.descriptors[0].setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+            bluetoothGatt?.writeDescriptor(characteristic.descriptors[0])
+
+            Log.i("DESCRIPTOR", "${characteristic.descriptors.get(0)}")
+
+        }
+    }
+
+
+    fun BluetoothGattCharacteristic.isNotifiable(): Boolean =
+        containsProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)
+
+    fun BluetoothGattCharacteristic.containsProperty(property: Int): Boolean =
+        properties and property != 0
+
+
+
+    fun setNewCharacteristicValue(characteristic: BluetoothGattCharacteristic, value : ByteArray) {
+        services.forEach { service ->
+            val c = service.getCharacteristic( characteristic.uuid)
+            if (characteristic != null) {
+                c.value = value  // Return the characteristic value if found
+            }
+        }
+
+    }
 
 }

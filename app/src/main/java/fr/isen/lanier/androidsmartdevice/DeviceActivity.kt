@@ -137,7 +137,7 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
                 Card(
                     onClick = {
                         selectedOption = value
-                        ServiceBLE.writeCharacteristic(device, servicesList.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
+                        ServiceBLE.writeCharacteristic(servicesList.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
                         Log.i("LEDSTATE", "displayAction: $value")
                     },
 
@@ -159,14 +159,24 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
             Text("Abonnez-vous pour recevoir le nombre d'incrementation")
             Checkbox(
                 checked = checked,
-                onCheckedChange = { checked = it }
+                onCheckedChange = {
+                    checked = it
+                    if(!servicesList.isEmpty()) {
+                        ServiceBLE.enableNotify(servicesList.get(2).characteristics.get(1))
+                    }
+                }
             )
         }
 
         Spacer(Modifier.height(20.dp))
 
         Row {
-            Text("Nombre")
+            if(!servicesList.isEmpty()) {
+                Text("Nombre : ${servicesList.get(3).characteristics.get(0).value}")
+            }
+            else {
+                Text("Nombre : None")
+            }
         }
     }
 
