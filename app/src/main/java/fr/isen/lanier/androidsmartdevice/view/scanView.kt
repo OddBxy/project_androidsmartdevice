@@ -31,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.isen.lanier.androidsmartdevice.DeviceActivity
-import fr.isen.lanier.androidsmartdevice.services.ServiceBLE
+import fr.isen.lanier.androidsmartdevice.models.ServiceBLE
 import fr.isen.lanier.androidsmartdevice.view.component.ShowDevice
 
 
@@ -87,6 +87,7 @@ fun ScanView(instaceBLE : ServiceBLE , devices : MutableList<ScanResult>, contex
                 Column(
                     Modifier.fillMaxWidth().clickable {
                         instaceBLE.stopScan()
+                        loading = false
                         intent.putExtra("device", it)
                         context.startActivity(intent)
                     }

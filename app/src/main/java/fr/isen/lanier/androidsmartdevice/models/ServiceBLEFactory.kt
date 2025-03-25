@@ -1,4 +1,4 @@
-package fr.isen.lanier.androidsmartdevice.services
+package fr.isen.lanier.androidsmartdevice.models
 
 class ServiceBLEFactory {
     companion object {

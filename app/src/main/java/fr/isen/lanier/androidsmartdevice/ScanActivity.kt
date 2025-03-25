@@ -24,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.location.LocationManagerCompat
-import fr.isen.lanier.androidsmartdevice.services.ServiceBLEFactory
+import fr.isen.lanier.androidsmartdevice.models.ServiceBLEFactory
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.ScanView
 

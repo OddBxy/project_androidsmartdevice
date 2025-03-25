@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import fr.isen.lanier.androidsmartdevice.services.ServiceBLEFactory
+import fr.isen.lanier.androidsmartdevice.models.ServiceBLEFactory
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.DeviceView
 import fr.isen.lanier.androidsmartdevice.view.component.headerBar
