@@ -60,7 +60,6 @@ class ScanActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val context = LocalContext.current
-            val deviceList = remember { InstanceBLE.instance.scanResults }
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             val bluetoothLEAvailable = packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
 
@@ -71,7 +70,7 @@ class ScanActivity : ComponentActivity() {
                     if(bluetoothLEAvailable){
                         if(bluetoothAdapter.isEnabled && isLocationEnabled(context)){
                             Row(Modifier.padding(innerPadding)) {
-                                scannedDevices(deviceList, context)
+                                scannedDevices(context)
                             }
                         }
                         else{
@@ -123,10 +122,16 @@ class ScanActivity : ComponentActivity() {
 }
 
 
+
+
+
+
+
 @SuppressLint("MissingPermission")
 @Composable
-fun scannedDevices(devices : MutableList<ScanResult>,context: Context){
+fun scannedDevices(context: Context){
 
+    val devices = remember { InstanceBLE.instance.scanResults }
     var loading by remember { mutableStateOf(false) }
     var intent = Intent(context, DeviceActivity::class.java)
 
@@ -186,3 +191,4 @@ fun scannedDevices(devices : MutableList<ScanResult>,context: Context){
         }
     }
 }
+

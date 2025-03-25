@@ -22,12 +22,31 @@ import java.util.UUID
 
 class ServiceBLE {
 
+    val bluetoothScanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
     var scanResults = mutableStateListOf<ScanResult>()
     var services = mutableStateListOf<BluetoothGattService>()
     var isConnected = mutableStateOf<Boolean?>(null)
     var characteristicValues = mutableStateMapOf<UUID, ByteArray?>()
     private var bluetoothGatt: BluetoothGatt? = null
 
+    val ALL_BLE_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        arrayOf(
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_SCAN
+        )
+    }
+    else {
+        arrayOf(
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+    }
+
+
+
+
+    //OVERRIDEN FUNCTIONS
     private val scanCallback = object : ScanCallback() {
 
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -48,6 +67,7 @@ class ServiceBLE {
             Log.i("SCANBLE_PB", "problem encoutered while scanning ")
         }
     }
+
 
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -118,26 +138,17 @@ class ServiceBLE {
     }
 
 
+    fun BluetoothGattCharacteristic.isNotifiable(): Boolean =
+        containsProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)
 
-    val ALL_BLE_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        arrayOf(
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.BLUETOOTH_SCAN
-        )
-    }
-    else {
-        arrayOf(
-            Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.BLUETOOTH,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    }
+    fun BluetoothGattCharacteristic.containsProperty(property: Int): Boolean =
+        properties and property != 0
 
 
 
 
-    val bluetoothScanner = BluetoothAdapter.getDefaultAdapter().bluetoothLeScanner
 
+    //ACCESSIBLE FUNCTIONS
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     public fun startScan(){
         bluetoothScanner.startScan(scanCallback)
@@ -176,12 +187,4 @@ class ServiceBLE {
 
         }
     }
-
-
-    fun BluetoothGattCharacteristic.isNotifiable(): Boolean =
-        containsProperty(BluetoothGattCharacteristic.PROPERTY_NOTIFY)
-
-    fun BluetoothGattCharacteristic.containsProperty(property: Int): Boolean =
-        properties and property != 0
-
 }

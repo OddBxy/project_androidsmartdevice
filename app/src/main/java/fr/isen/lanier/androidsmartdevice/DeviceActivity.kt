@@ -65,7 +65,7 @@ class DeviceActivity() : ComponentActivity() {
         val device = intent.getParcelableExtra<ScanResult>("device")
         enableEdgeToEdge()
         setContent {
-            val servicesList = remember { InstanceBLE.instance.services }
+
             val isConnected by InstanceBLE.instance.isConnected
             InstanceBLE.instance.connect(device!!, LocalContext.current)
             AndroidsmartdeviceTheme {
@@ -75,7 +75,7 @@ class DeviceActivity() : ComponentActivity() {
                 ) { innerPadding ->
 
                     if(isConnected == true){
-                        displayAction(device, servicesList, Modifier.padding(innerPadding))
+                        displayAction(device, Modifier.padding(innerPadding))
                     }
                     else if(isConnected == false){
                         Column(
@@ -116,11 +116,15 @@ class DeviceActivity() : ComponentActivity() {
 @OptIn(ExperimentalStdlibApi::class)
 @SuppressLint("MissingPermission")
 @Composable
-fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattService>,modifier: Modifier){
+fun displayAction(device : ScanResult, modifier: Modifier){
+
+    var services = InstanceBLE.instance.services
     var checked by remember { mutableStateOf(false) }
     val characteristicData by remember {
         derivedStateOf {
-            InstanceBLE.instance.characteristicValues[servicesList.get(2).characteristics.get(1).uuid]
+            InstanceBLE.instance.characteristicValues[
+               services.get(2).characteristics.get(1).uuid
+            ]
         }
     }
 
@@ -147,8 +151,8 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
                 checked = checked,
                 onCheckedChange = {
                     checked = it
-                    if(!servicesList.isEmpty()) {
-                        InstanceBLE.instance.enableNotify(servicesList.get(2).characteristics.get(1))
+                    if(!services.isEmpty()) {
+                        InstanceBLE.instance.enableNotify(services.get(2).characteristics.get(1))
                     }
                 }
             )
@@ -157,7 +161,7 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
         Spacer(Modifier.height(20.dp))
 
         Row {
-            if(!servicesList.isEmpty()) {
+            if(!services.isEmpty()) {
                 Text("Nombre : ${characteristicData?.toHexString()}")
             }
             else {
@@ -176,6 +180,7 @@ fun radioButtons(){
 
     var selectedOption by remember { mutableStateOf(0) }
     var leds = listOf(0x01, 0x02, 0x03)
+    var services = InstanceBLE.instance.services
 
     Text("Affichage des differentes led")
     Row(
@@ -187,7 +192,7 @@ fun radioButtons(){
             Card(
                 onClick = {
                     selectedOption = value
-                    InstanceBLE.instance.writeCharacteristic(InstanceBLE.instance.services.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
+                    InstanceBLE.instance.writeCharacteristic(services.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
                     Log.i("LEDSTATE", "displayAction: $value")
                 },
 
