@@ -1,4 +1,4 @@
-package fr.isen.lanier.androidsmartdevice.view.component
+package fr.isen.lanier.androidsmartdevice.view
 
 import android.annotation.SuppressLint
 import android.bluetooth.le.ScanResult
