@@ -47,7 +47,7 @@ class DeviceActivity() : ComponentActivity() {
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onDestroy() {
-        super.onDestroy()
         instanceBLE.disconnectDevice()
+        super.onDestroy()
     }
 }

@@ -107,8 +107,11 @@ fun displayAction(instanceBLE : ServiceBLE, device : ScanResult, modifier: Modif
                 checked = checked,
                 onCheckedChange = {
                     checked = it
-                    if(!services.isEmpty()) {
+                    if(!services.isEmpty() && checked != false) {
                         instanceBLE.enableNotify(services.get(2).characteristics.get(1))
+                    }
+                    else if(checked == false){
+                        instanceBLE.disableNotify(services.get(2).characteristics.get(1))
                     }
                 }
             )

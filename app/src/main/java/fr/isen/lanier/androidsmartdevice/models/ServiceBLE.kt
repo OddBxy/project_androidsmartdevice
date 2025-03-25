@@ -194,7 +194,20 @@ class ServiceBLE {
             characteristic.descriptors[0].setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
             bluetoothGatt?.writeDescriptor(characteristic.descriptors[0])
 
-            Log.i("DESCRIPTOR", "${characteristic.descriptors.get(0)}")
+            Log.i("NOTIFY ENABLE", "${characteristic.descriptors.get(0)}")
+
+        }
+    }
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    public fun disableNotify(characteristic: BluetoothGattCharacteristic?){
+        if( (characteristic != null) && (characteristic.isNotifiable()) ){
+            bluetoothGatt?.setCharacteristicNotification(characteristic, true)
+
+            characteristic.descriptors[0].setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)
+            bluetoothGatt?.writeDescriptor(characteristic.descriptors[0])
+
+            Log.i("NOTIFY DISABLE", "${characteristic.descriptors.get(0)}")
 
         }
     }
