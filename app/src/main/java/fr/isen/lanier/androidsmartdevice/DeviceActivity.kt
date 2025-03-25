@@ -1,6 +1,7 @@
 package fr.isen.lanier.androidsmartdevice
 
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothGattService
 import android.bluetooth.le.ScanResult
 import android.os.Bundle
 import android.util.Log
@@ -68,17 +69,7 @@ class DeviceActivity() : ComponentActivity() {
                 ) { innerPadding ->
 
                     if(isConnected == true){
-//                        LazyColumn(
-//                            Modifier.fillMaxSize(),
-//                            verticalArrangement = Arrangement.Center,
-//                            horizontalAlignment = Alignment.CenterHorizontally
-//                        ) {
-//                            items(servicesList){
-//                                Text(it.uuid.toString())
-//                            }
-//                        }
-
-                        displayAction(device , Modifier.padding(innerPadding))
+                        displayAction(device, servicesList, Modifier.padding(innerPadding))
                     }
                     else if(isConnected == false){
                         Column(
@@ -115,7 +106,7 @@ class DeviceActivity() : ComponentActivity() {
 
 @SuppressLint("MissingPermission")
 @Composable
-fun displayAction(device : ScanResult, modifier: Modifier){
+fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattService>,modifier: Modifier){
     var checked by remember { mutableStateOf(false) }
     var ledStates = remember { mutableStateListOf(false, false, false) }
     Column(
@@ -142,7 +133,8 @@ fun displayAction(device : ScanResult, modifier: Modifier){
                 IconButton(
                     onClick = {
                         ledStates[it] = !ledStates[it]
-                        Log.i("LEDSTATE", "displayAction: ${ledStates[it]}")
+                        ServiceBLE.writeCharacteristic(device, servicesList.get(2).characteristics.get(0), byteArrayOf((it+1).toByte()))
+                        Log.i("LEDSTATE", "displayAction: ${ledStates[it]} $it")
                     }
                 ) {
                     if(!ledStates[it]){

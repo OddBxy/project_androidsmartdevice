@@ -4,6 +4,7 @@ import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
@@ -15,12 +16,15 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import java.util.UUID
 
 object ServiceBLE {
 
     var scanResults = mutableStateListOf<ScanResult>()
     var services = mutableStateListOf<BluetoothGattService>()
     var isConnected = mutableStateOf<Boolean?>(null)
+    private var bluetoothGatt: BluetoothGatt? = null
+
     private val scanCallback = object : ScanCallback() {
 
         @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -73,6 +77,15 @@ object ServiceBLE {
             }
         }
 
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?,
+            status: Int
+        ) {
+            super.onCharacteristicWrite(gatt, characteristic, status)
+            Log.i("WRITE", "Write status: $status")
+        }
+
     }
 
 
@@ -109,7 +122,16 @@ object ServiceBLE {
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public fun connect(device : ScanResult, context: Context){
         isConnected.value = null
-        device.device.connectGatt(context, false, connectCallback)
+        bluetoothGatt = device.device.connectGatt(context, false, connectCallback)
+    }
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    public fun writeCharacteristic(device : ScanResult, characteristic: BluetoothGattCharacteristic, newValue : ByteArray){
+        if(characteristic != null){
+            Log.i("WRITE UUID", "UUID : ${characteristic.uuid}, VALUE : $newValue")
+            characteristic.setValue(newValue)
+            bluetoothGatt?.writeCharacteristic(characteristic)
+        }
     }
 
 
