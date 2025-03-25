@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import fr.isen.lanier.androidsmartdevice.services.InstanceBLE
+import fr.isen.lanier.androidsmartdevice.services.ServiceBLEFactory
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.DeviceView
 import fr.isen.lanier.androidsmartdevice.view.component.headerBar
 
 class DeviceActivity() : ComponentActivity() {
+
+    private val instanceBLE = ServiceBLEFactory.getServiceBLEInstance()
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,14 +29,15 @@ class DeviceActivity() : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
 
-            InstanceBLE.instance.connect(device!!, LocalContext.current)
+            //InstanceBLE.instance.connect(device!!, LocalContext.current)
+            instanceBLE.connect(device!!, LocalContext.current)
             AndroidsmartdeviceTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = { headerBar() }
                 ) { innerPadding ->
 
-                    DeviceView(device, Modifier.padding(innerPadding))
+                    DeviceView(instanceBLE,device, Modifier.padding(innerPadding))
 
                 }
             }
@@ -45,6 +48,6 @@ class DeviceActivity() : ComponentActivity() {
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onDestroy() {
         super.onDestroy()
-        InstanceBLE.instance.disconnectDevice()
+        instanceBLE.disconnectDevice()
     }
 }

@@ -31,14 +31,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import fr.isen.lanier.androidsmartdevice.services.InstanceBLE
+import fr.isen.lanier.androidsmartdevice.services.ServiceBLE
 
 @Composable
-fun DeviceView(device : ScanResult, modifier: Modifier){
-    if(InstanceBLE.instance.isConnected.value == true){
-        displayAction(device, modifier)
+fun DeviceView(instanceBLE : ServiceBLE, device : ScanResult, modifier: Modifier){
+    if(instanceBLE.isConnected.value == true){
+        displayAction(instanceBLE, device, modifier)
     }
-    else if(InstanceBLE.instance.isConnected.value == false){
+    else if(instanceBLE.isConnected.value == false){
         Column(
             Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
@@ -72,13 +72,13 @@ fun DeviceView(device : ScanResult, modifier: Modifier){
 @OptIn(ExperimentalStdlibApi::class)
 @SuppressLint("MissingPermission")
 @Composable
-fun displayAction(device : ScanResult, modifier: Modifier){
+fun displayAction(instanceBLE : ServiceBLE, device : ScanResult, modifier: Modifier){
 
-    var services = InstanceBLE.instance.services
+    var services = instanceBLE.services
     var checked by remember { mutableStateOf(false) }
     val characteristicData by remember {
         derivedStateOf {
-            InstanceBLE.instance.characteristicValues[
+            instanceBLE.characteristicValues[
                 services.get(2).characteristics.get(1).uuid
             ]
         }
@@ -97,7 +97,7 @@ fun displayAction(device : ScanResult, modifier: Modifier){
 
         Spacer(Modifier.height(50.dp))
 
-        radioButtons()
+        radioButtons(instanceBLE)
 
         Spacer(Modifier.height(30.dp))
 
@@ -108,7 +108,7 @@ fun displayAction(device : ScanResult, modifier: Modifier){
                 onCheckedChange = {
                     checked = it
                     if(!services.isEmpty()) {
-                        InstanceBLE.instance.enableNotify(services.get(2).characteristics.get(1))
+                        instanceBLE.enableNotify(services.get(2).characteristics.get(1))
                     }
                 }
             )
@@ -132,11 +132,11 @@ fun displayAction(device : ScanResult, modifier: Modifier){
 
 @SuppressLint("MissingPermission")
 @Composable
-fun radioButtons(){
+fun radioButtons(instanceBLE : ServiceBLE){
 
     var selectedOption by remember { mutableStateOf(0) }
     var leds = listOf(0x01, 0x02, 0x03)
-    var services = InstanceBLE.instance.services
+    var services = instanceBLE.services
 
     Text("Affichage des differentes led")
     Row(
@@ -148,7 +148,7 @@ fun radioButtons(){
             Card(
                 onClick = {
                     selectedOption = value
-                    InstanceBLE.instance.writeCharacteristic(services.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
+                    instanceBLE.writeCharacteristic(services.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
                     Log.i("LEDSTATE", "displayAction: $value")
                 },
 

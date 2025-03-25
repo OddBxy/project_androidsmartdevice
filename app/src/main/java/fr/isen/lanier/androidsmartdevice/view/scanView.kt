@@ -31,14 +31,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.isen.lanier.androidsmartdevice.DeviceActivity
-import fr.isen.lanier.androidsmartdevice.services.InstanceBLE
+import fr.isen.lanier.androidsmartdevice.services.ServiceBLE
 import fr.isen.lanier.androidsmartdevice.view.component.ShowDevice
 
 
 
 @SuppressLint("MissingPermission")
 @Composable
-fun ScanView(devices : MutableList<ScanResult>, context: Context){
+fun ScanView(instaceBLE : ServiceBLE , devices : MutableList<ScanResult>, context: Context){
 
     var loading by remember { mutableStateOf(false) }
     var intent = Intent(context, DeviceActivity::class.java)
@@ -50,10 +50,10 @@ fun ScanView(devices : MutableList<ScanResult>, context: Context){
             onClick =  {
                 loading = !loading
                 if(loading){
-                    InstanceBLE.instance.startScan()
+                    instaceBLE.startScan()
                 }
                 else{
-                    InstanceBLE.instance.stopScan()
+                    instaceBLE.stopScan()
                 }
             },
             modifier = Modifier
@@ -86,7 +86,7 @@ fun ScanView(devices : MutableList<ScanResult>, context: Context){
             items(devices){
                 Column(
                     Modifier.fillMaxWidth().clickable {
-                        InstanceBLE.instance.stopScan()
+                        instaceBLE.stopScan()
                         intent.putExtra("device", it)
                         context.startActivity(intent)
                     }

@@ -24,12 +24,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.location.LocationManagerCompat
-import fr.isen.lanier.androidsmartdevice.services.InstanceBLE
+import fr.isen.lanier.androidsmartdevice.services.ServiceBLEFactory
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.ScanView
 
 
 class ScanActivity : ComponentActivity() {
+
+    private val instanceBLE = ServiceBLEFactory.getServiceBLEInstance()
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +44,7 @@ class ScanActivity : ComponentActivity() {
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             val bluetoothLEAvailable = packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
 
-            val devices = remember { InstanceBLE.instance.scanResults }
+            val devices = remember { instanceBLE.scanResults }
 
             AndroidsmartdeviceTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -50,7 +52,7 @@ class ScanActivity : ComponentActivity() {
                     if(bluetoothLEAvailable){
                         if(bluetoothAdapter.isEnabled && isLocationEnabled(context)){
                             Row(Modifier.padding(innerPadding)) {
-                                ScanView(devices ,context)
+                                ScanView(instanceBLE, devices ,context)
                             }
                         }
                         else{
@@ -91,7 +93,7 @@ class ScanActivity : ComponentActivity() {
             }
         }
 
-        launcher.launch(InstanceBLE.instance.ALL_BLE_PERMISSIONS)
+        launcher.launch(instanceBLE.ALL_BLE_PERMISSIONS)
     }
 
     private fun isLocationEnabled(context: Context): Boolean {
