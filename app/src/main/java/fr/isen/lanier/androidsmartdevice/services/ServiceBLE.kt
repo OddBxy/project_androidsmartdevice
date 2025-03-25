@@ -16,6 +16,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import java.util.UUID
 
@@ -24,6 +25,7 @@ object ServiceBLE {
     var scanResults = mutableStateListOf<ScanResult>()
     var services = mutableStateListOf<BluetoothGattService>()
     var isConnected = mutableStateOf<Boolean?>(null)
+    var characteristicValues = mutableStateMapOf<UUID, ByteArray?>()
     private var bluetoothGatt: BluetoothGatt? = null
 
     private val scanCallback = object : ScanCallback() {
@@ -93,7 +95,8 @@ object ServiceBLE {
             characteristic: BluetoothGattCharacteristic
         ) {
             super.onCharacteristicChanged(gatt, characteristic)
-            setNewCharacteristicValue(characteristic, characteristic.value)
+
+            characteristicValues[characteristic.uuid] = characteristic.value
             Log.i("NOTIFY CHANGE", "New value: ${characteristic.value.toHexString()}")
         }
 
@@ -180,17 +183,5 @@ object ServiceBLE {
 
     fun BluetoothGattCharacteristic.containsProperty(property: Int): Boolean =
         properties and property != 0
-
-
-
-    fun setNewCharacteristicValue(characteristic: BluetoothGattCharacteristic, value : ByteArray) {
-        services.forEach { service ->
-            val c = service.getCharacteristic( characteristic.uuid)
-            if (characteristic != null) {
-                c.value = value  // Return the characteristic value if found
-            }
-        }
-
-    }
 
 }

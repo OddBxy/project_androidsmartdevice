@@ -37,6 +37,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -108,10 +109,17 @@ class DeviceActivity() : ComponentActivity() {
 }
 
 
+@OptIn(ExperimentalStdlibApi::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattService>,modifier: Modifier){
     var checked by remember { mutableStateOf(false) }
+    val characteristicData by remember {
+        derivedStateOf {
+            ServiceBLE.characteristicValues[servicesList.get(2).characteristics.get(1).uuid]
+        }
+    }
+
     var selectedOption by remember { mutableStateOf(0) }
     var leds = listOf(0x01, 0x02, 0x03)
     Column(
@@ -172,7 +180,7 @@ fun displayAction(device : ScanResult, servicesList : MutableList<BluetoothGattS
 
         Row {
             if(!servicesList.isEmpty()) {
-                Text("Nombre : ${servicesList.get(3).characteristics.get(0).value}")
+                Text("Nombre : ${characteristicData?.toHexString()}")
             }
             else {
                 Text("Nombre : None")
