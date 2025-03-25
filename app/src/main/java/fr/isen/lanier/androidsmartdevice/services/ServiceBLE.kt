@@ -27,6 +27,7 @@ class ServiceBLE {
     var services = mutableStateListOf<BluetoothGattService>()
     var isConnected = mutableStateOf<Boolean?>(null)
     var characteristicValues = mutableStateMapOf<UUID, ByteArray?>()
+
     private var bluetoothGatt: BluetoothGatt? = null
 
     val ALL_BLE_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -164,6 +165,16 @@ class ServiceBLE {
         isConnected.value = null
         bluetoothGatt = device.device.connectGatt(context, false, connectCallback)
     }
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun disconnectDevice() {
+        bluetoothGatt?.disconnect()
+        bluetoothGatt?.close()
+        Log.d("SERVICEBLE", "Disconnected from GATT server.")
+    }
+
+
+
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     public fun writeCharacteristic(characteristic: BluetoothGattCharacteristic?, newValue : ByteArray){

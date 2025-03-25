@@ -63,6 +63,7 @@ class ScanActivity : ComponentActivity() {
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             val bluetoothLEAvailable = packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
 
+            val devices = remember { InstanceBLE.instance.scanResults }
 
             AndroidsmartdeviceTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -70,7 +71,7 @@ class ScanActivity : ComponentActivity() {
                     if(bluetoothLEAvailable){
                         if(bluetoothAdapter.isEnabled && isLocationEnabled(context)){
                             Row(Modifier.padding(innerPadding)) {
-                                scannedDevices(context)
+                                scannedDevices(devices ,context)
                             }
                         }
                         else{
@@ -129,9 +130,8 @@ class ScanActivity : ComponentActivity() {
 
 @SuppressLint("MissingPermission")
 @Composable
-fun scannedDevices(context: Context){
+fun scannedDevices(devices : MutableList<ScanResult>, context: Context){
 
-    val devices = remember { InstanceBLE.instance.scanResults }
     var loading by remember { mutableStateOf(false) }
     var intent = Intent(context, DeviceActivity::class.java)
 
@@ -178,6 +178,7 @@ fun scannedDevices(context: Context){
             items(devices){
                 Column(
                     Modifier.fillMaxWidth().clickable {
+                        InstanceBLE.instance.stopScan()
                         intent.putExtra("device", it)
                         context.startActivity(intent)
                     }

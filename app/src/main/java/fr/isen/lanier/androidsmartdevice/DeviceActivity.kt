@@ -1,5 +1,6 @@
 package fr.isen.lanier.androidsmartdevice
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.le.ScanResult
@@ -8,6 +9,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,12 +55,14 @@ import androidx.compose.ui.unit.sp
 import fr.isen.lanier.androidsmartdevice.services.InstanceBLE
 import fr.isen.lanier.androidsmartdevice.services.ServiceBLE
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
+import fr.isen.lanier.androidsmartdevice.view.component.DeviceView
 import fr.isen.lanier.androidsmartdevice.view.component.ShowDevice
 import fr.isen.lanier.androidsmartdevice.view.component.headerBar
 import kotlinx.coroutines.selects.select
 
 class DeviceActivity() : ComponentActivity() {
-    @SuppressLint("MissingPermission")
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -66,7 +70,6 @@ class DeviceActivity() : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
 
-            val isConnected by InstanceBLE.instance.isConnected
             InstanceBLE.instance.connect(device!!, LocalContext.current)
             AndroidsmartdeviceTheme {
                 Scaffold(
@@ -74,138 +77,17 @@ class DeviceActivity() : ComponentActivity() {
                     topBar = { headerBar() }
                 ) { innerPadding ->
 
-                    if(isConnected == true){
-                        displayAction(device, Modifier.padding(innerPadding))
-                    }
-                    else if(isConnected == false){
-                        Column(
-                            Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("A problem has occured while connecting")
-                        }
-                    }
-                    else{
-                        Column(
-                            Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-
-                            CircularProgressIndicator(
-                                modifier = Modifier.fillMaxWidth(1/6f),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-                            Spacer(Modifier.height(30.dp))
-                            Text("Connecting ......")
-                        }
-                    }
+                    DeviceView(device, Modifier.padding(innerPadding))
 
                 }
             }
         }
     }
-}
 
 
-
-
-
-@OptIn(ExperimentalStdlibApi::class)
-@SuppressLint("MissingPermission")
-@Composable
-fun displayAction(device : ScanResult, modifier: Modifier){
-
-    var services = InstanceBLE.instance.services
-    var checked by remember { mutableStateOf(false) }
-    val characteristicData by remember {
-        derivedStateOf {
-            InstanceBLE.instance.characteristicValues[
-               services.get(2).characteristics.get(1).uuid
-            ]
-        }
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    override fun onDestroy() {
+        super.onDestroy()
+        InstanceBLE.instance.disconnectDevice()
     }
-
-    Column(
-        modifier = modifier.padding(30.dp)
-    ) {
-
-        Text(
-            device.device.name,
-            Modifier.fillMaxWidth(),
-            fontSize = 30.sp,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(50.dp))
-
-        radioButtons()
-
-        Spacer(Modifier.height(30.dp))
-
-        Row {
-            Text("Abonnez-vous pour recevoir le nombre d'incrementation")
-            Checkbox(
-                checked = checked,
-                onCheckedChange = {
-                    checked = it
-                    if(!services.isEmpty()) {
-                        InstanceBLE.instance.enableNotify(services.get(2).characteristics.get(1))
-                    }
-                }
-            )
-        }
-
-        Spacer(Modifier.height(20.dp))
-
-        Row {
-            if(!services.isEmpty()) {
-                Text("Nombre : ${characteristicData?.toHexString()}")
-            }
-            else {
-                Text("Nombre : None")
-            }
-        }
-    }
-
-}
-
-
-
-@SuppressLint("MissingPermission")
-@Composable
-fun radioButtons(){
-
-    var selectedOption by remember { mutableStateOf(0) }
-    var leds = listOf(0x01, 0x02, 0x03)
-    var services = InstanceBLE.instance.services
-
-    Text("Affichage des differentes led")
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        leds.forEach{ value ->
-            Card(
-                onClick = {
-                    selectedOption = value
-                    InstanceBLE.instance.writeCharacteristic(services.get(2).characteristics.get(0), byteArrayOf(value.toByte()))
-                    Log.i("LEDSTATE", "displayAction: $value")
-                },
-
-
-                ) {
-                if(selectedOption != value){
-                    Icon(Icons.Outlined.CheckCircle, "LedIconOFF")
-                }
-                else{
-                    Icon(Icons.Filled.CheckCircle, "LedIconOn")
-                }
-            }
-        }
-    }
-
 }
