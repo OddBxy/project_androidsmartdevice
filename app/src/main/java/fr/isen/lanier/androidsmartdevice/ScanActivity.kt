@@ -27,6 +27,7 @@ import androidx.core.location.LocationManagerCompat
 import fr.isen.lanier.androidsmartdevice.models.ServiceBLEFactory
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
 import fr.isen.lanier.androidsmartdevice.view.ScanView
+import fr.isen.lanier.androidsmartdevice.view.component.headerBar
 
 
 class ScanActivity : ComponentActivity() {
@@ -47,7 +48,10 @@ class ScanActivity : ComponentActivity() {
             val devices = remember { instanceBLE.scanResults }
 
             AndroidsmartdeviceTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = { headerBar() }
+                ) { innerPadding ->
 
                     if(bluetoothLEAvailable){
                         if(bluetoothAdapter.isEnabled && isLocationEnabled(context)){

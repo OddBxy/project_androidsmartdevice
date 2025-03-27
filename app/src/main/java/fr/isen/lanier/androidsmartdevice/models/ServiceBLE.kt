@@ -152,6 +152,7 @@ class ServiceBLE {
     //ACCESSIBLE FUNCTIONS
     @RequiresPermission(Manifest.permission.BLUETOOTH_SCAN)
     public fun startScan(){
+        scanResults.clear()
         bluetoothScanner.startScan(scanCallback)
     }
 

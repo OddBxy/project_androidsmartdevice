@@ -40,7 +40,7 @@ fun ShowDevice(device: ScanResult){
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "${device.txPower}",
+            text = "${device.rssi}",
             color = Color.White,
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primary, shape = CircleShape)

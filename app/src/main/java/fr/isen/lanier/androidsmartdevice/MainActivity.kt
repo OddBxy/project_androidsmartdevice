@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fr.isen.lanier.androidsmartdevice.ui.theme.AndroidsmartdeviceTheme
+import fr.isen.lanier.androidsmartdevice.view.component.headerBar
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +38,10 @@ class MainActivity : ComponentActivity() {
             var intent = Intent(context, ScanActivity::class.java)
 
             AndroidsmartdeviceTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = { headerBar() }
+                ) { innerPadding ->
                     Column(
                         modifier = Modifier.fillMaxSize().padding(innerPadding).padding(horizontal = 20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
